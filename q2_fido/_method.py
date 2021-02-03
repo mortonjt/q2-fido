@@ -80,5 +80,5 @@ def basset(table : pd.DataFrame,
         zdata = zdata.to_dataset(name='value')
         zdata['name'] = 'data'
         xdata['name'] = 'data'
-        summary = xarray.concat((zdata, xdata), dim='featureid')
-        return summary
+        posterior = xarray.concat((zdata, xdata), dim='featureid')
+        return posterior

@@ -28,8 +28,7 @@ plugin.methods.register_function(
         'subjects': MetadataColumn[Categorical],
         'host' : Str,
         'time': MetadataColumn[Continuous],
-        'monte_carlo_samples': Int,
-        'reference_group': Str
+        'monte_carlo_samples': Int
     },
     outputs=[
         ('posterior', FeatureTensor)
@@ -39,21 +38,21 @@ plugin.methods.register_function(
     },
     output_descriptions={
         'posterior': ('Output posterior time series learned from '
-                      'Multinomial Logistic Normal'),
+                      'Matrix t-distribution.'),
     },
     parameter_descriptions={
-        'groups': ('The categorical sample metadata column to test for '
-                     'differential abundance across.'),
-        "monte_carlo_samples": (
+        'subjects': ('Specifies host subject ids.'),
+        'host': ('Host subject id of interest'),
+        'time': (
+            'Specifies time data.'
+        ),
+        'monte_carlo_samples': (
             'Number of monte carlo samples to draw from '
             'posterior distribution.'
         ),
-        "reference_group": (
-            'Reference category to compute log-fold change from.'
-        )
+
     },
-    name='Dirichilet Multinomial',
-    description=("Fits a Dirchilet Multinomial model and computes biased"
-                 "log-fold change."),
+    name='Basset',
+    description=("Fits a Matrix t-distribution on a single trajectory."),
     citations=[]
 )
