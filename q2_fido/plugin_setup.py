@@ -2,7 +2,8 @@ import importlib
 import qiime2.plugin
 import qiime2.sdk
 from qiime2.plugin import (Str, Properties, Int, Float,  Metadata, Bool,
-                           MetadataColumn, Categorical, Continuous)
+                           MetadataColumn, Categorical, Numeric)
+from q2_types.feature_table import FeatureTable, Frequency
 
 from q2_fido import __version__
 from q2_differential._type import FeatureTensor
@@ -11,7 +12,7 @@ from q2_fido._method import basset
 
 
 plugin = qiime2.plugin.Plugin(
-    name='basset',
+    name='fido',
     version=__version__,
     website="https://github.com/mortonjt/q2-fido",
     citations=[],
@@ -19,15 +20,15 @@ plugin = qiime2.plugin.Plugin(
                        'via count-based models.'),
     description=('This is a QIIME 2 plugin supporting time series models on '
                  'feature tables and metadata.'),
-    package='q2-differential')
+    package='q2-fido')
 
 plugin.methods.register_function(
-    function=dirichlet_multinomial,
+    function=basset,
     inputs={'table': FeatureTable[Frequency]},
     parameters={
         'subjects': MetadataColumn[Categorical],
         'host' : Str,
-        'time': MetadataColumn[Continuous],
+        'time': MetadataColumn[Numeric],
         'monte_carlo_samples': Int
     },
     outputs=[

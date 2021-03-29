@@ -1,9 +1,10 @@
-import biom
 import qiime2
 import tempfile
 import xarray as xr
-import pyarrow.feather as feather
 import pandas as pd
+import numpy as np
+import subprocess
+import os
 import re
 
 
@@ -12,18 +13,36 @@ def _alr2clr(x):
     return y - y.mean(axis=0)
 
 
+def run_commands(cmds, verbose=True):
+    if verbose:
+        print("Running external command line application(s). This may print "
+              "messages to stdout and/or stderr.")
+        print("The command(s) being run are below. These commands cannot "
+              "be manually re-run as they will depend on temporary files that "
+              "no longer exist.")
+    for cmd in cmds:
+        if verbose:
+            print("\nCommand:", end=' ')
+            print(" ".join(cmd), end='\n\n')
+        proc = subprocess.run(cmd, check=True)
+
+
 def basset(table : pd.DataFrame,
-           time : qiime2.ContinuousMetadataColumn,
+           time : qiime2.NumericMetadataColumn,
            subjects : qiime2.CategoricalMetadataColumn,
            host : str,
-           monte_carlo_samples: int) -> xr.DataArray:
+           monte_carlo_samples: int=1000) -> xr.DataArray:
 
     time = time.to_series()
     subjects = subjects.to_series()
     metadata = pd.DataFrame({'time': time, 'subject': subjects})
     metadata = metadata.loc[metadata.subject == host]
-    table = table.loc[metadata.index]
+    ids = list(set(table.index) & set(metadata.index))
+    table = table.loc[ids]
+    metadata = metadata.loc[ids]
     metadata = metadata['time']
+    table = table.loc[:, ((table>0).sum(axis=0) > 0)]  # filter out taxa
+    print(table.shape, metadata.shape)
     with tempfile.TemporaryDirectory() as temp_dir_name:
         biom_fp = os.path.join(temp_dir_name, 'input.tsv.biom')
         map_fp = os.path.join(temp_dir_name, 'input.map.txt')
@@ -36,7 +55,7 @@ def basset(table : pd.DataFrame,
         metadata.to_csv(map_fp, sep='\t', header=True)
 
         cmd = ['fido-timeseries.R', biom_fp, map_fp, 'time',
-               mc_samples, summary_fp]
+               monte_carlo_samples, summary_fp]
         cmd = list(map(str, cmd))
 
         try:
@@ -68,7 +87,7 @@ def basset(table : pd.DataFrame,
         t, r = zip(*ftaxa)
         xdata['coords']['featureid'] = np.array(list(t))
         # Convert alr coordinates to clr coordinates across entire tensor
-        zdata = xarray.DataArray(
+        zdata = xr.DataArray(
             np.zeros((1, 2000, 43)),
             dims=['featureid', 'mc_sample', 'sample_num'],
             coords=dict(
@@ -80,5 +99,5 @@ def basset(table : pd.DataFrame,
         zdata = zdata.to_dataset(name='value')
         zdata['name'] = 'data'
         xdata['name'] = 'data'
-        posterior = xarray.concat((zdata, xdata), dim='featureid')
+        posterior = xr.concat((zdata, xdata), dim='featureid')
         return posterior

@@ -38,6 +38,7 @@ setup(name='q2-fido',
           'matplotlib',
           'q2-differential'
       ],
+      scripts=['q2_fido/assets/fido-timeseries.R'],
       entry_points={
           'qiime2.plugins': ['q2-fido=q2_fido.plugin_setup:plugin']
       },
