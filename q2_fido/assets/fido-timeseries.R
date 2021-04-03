@@ -32,7 +32,8 @@ Xi <- matrix(.4, D - 1, D - 1)
 diag(Xi) <- 1
 
 fit <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi,
-                    optim_method='lbfgs', jitter=0.001);
+                    optim_method='lbfgs', jitter=0.001,
+                    n_samples=mc.samples);
 lam <- as.data.frame(fit$Lambda)
 lam['featureid'] <- rownames(fit$Lambda)
 write_feather(lam, output)

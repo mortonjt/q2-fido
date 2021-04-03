@@ -31,7 +31,7 @@ def basset(table : pd.DataFrame,
            time : qiime2.NumericMetadataColumn,
            subjects : qiime2.CategoricalMetadataColumn,
            host : str,
-           monte_carlo_samples: int=1000) -> xr.DataArray:
+           monte_carlo_samples: int=2000) -> xr.DataArray:
 
     time = time.to_series()
     subjects = subjects.to_series()
