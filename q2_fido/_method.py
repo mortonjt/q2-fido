@@ -40,10 +40,11 @@ def basset(table : pd.DataFrame,
     ids = list(set(table.index) & set(metadata.index))
     table = table.loc[ids]
     metadata = metadata.loc[ids]
-    metadata = metadata['time']
-    table = table.loc[:, ((table>0).sum(axis=0) > 0)]  # filter out taxa
+    metadata = metadata['time'] - metadata['time'].min()
+    table = table.loc[:, ((table>0).sum(axis=0) > 3)]  # filter out taxa in less than 3 samples
     print(table.shape, metadata.shape)
     with tempfile.TemporaryDirectory() as temp_dir_name:
+        # temp_dir_name = '.'
         biom_fp = os.path.join(temp_dir_name, 'input.tsv.biom')
         map_fp = os.path.join(temp_dir_name, 'input.map.txt')
         summary_fp = os.path.join(temp_dir_name, 'output.summary.txt')

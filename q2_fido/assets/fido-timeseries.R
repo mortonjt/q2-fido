@@ -1,4 +1,6 @@
 #!/usr/bin/env Rscript
+cat(R.version$version.string, "\n")
+
 library(fido)
 library(dplyr)
 library(driver)
@@ -11,7 +13,6 @@ map.name <- args[[2]]
 time.column <- args[[3]]
 mc.samples <- args[[4]]
 output <- args[[5]]
-
 
 table <-read.table(biom.name, check.names=FALSE, row.names=1)
 map <- read.csv(map.name, sep='\t', row.names=1)
@@ -30,7 +31,6 @@ upsilon <- D - 1 + 3
 Xi <- matrix(.4, D - 1, D - 1)
 diag(Xi) <- 1
 
-# Now fit the model
-fit <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi)
-
-write_feather(fit$Lambda, output)
+fit <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi,
+                    optim_method='lbfgs', jitter=0.001);
+write_feather(as.data.frame(fit$Lambda), output)
