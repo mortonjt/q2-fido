@@ -33,4 +33,6 @@ diag(Xi) <- 1
 
 fit <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi,
                     optim_method='lbfgs', jitter=0.001);
-write_feather(as.data.frame(fit$Lambda), output)
+lam <- as.data.frame(fit$Lambda)
+lam['featureid'] <- rownames(fit$Lambda)
+write_feather(lam, output)

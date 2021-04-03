@@ -67,18 +67,21 @@ def basset(table : pd.DataFrame,
                             " and stderr to learn more." % e.returncode)
 
         lam = pd.read_feather(summary_fp)
-        # convert to clr coordinates for the sake of sanity
-        pattern = re.compile(r'X(\d+).(\d+)')
-        cols = list(map(lambda x: pattern.findall(x)[0], lam.columns[1:]))
-        lookup = pd.DataFrame(np.array(cols), index=lam.columns[1:],
-                              columns=['sample_num', 'mc_sample'])
-        lam = lam.set_index('Unnamed: 0').T
+        # convert to tensor for the sake of sanity
+        lam = lam.set_index('featureid').T
+        pattern = re.compile(r'(\d+).(\d+)')
+        cols = list(map(lambda x: pattern.findall(x)[0], lam.index))
+        lookup = pd.DataFrame(np.array(cols), index=lam.index,
+                              columns=['sampleid', 'mc_sample'])
         lam = pd.merge(lam, lookup, left_index=True, right_index=True)
-        lam['sample_num'] = lam['sample_num'].astype(np.int64)
+        lam['sampleid'] = lam['sampleid'].astype(np.int64)
         lam['mc_sample'] = lam['mc_sample'].astype(np.int64)
-        lam_tensor = pd.melt(lam, id_vars=['sample_num', 'mc_sample'],
+        lam_tensor = pd.melt(lam, id_vars=['sampleid', 'mc_sample'],
                              var_name='featureid')
-        lam_tensor = lam_tensor.set_index(['sample_num', 'mc_sample', 'featureid'])
+        sampleids = lam_tensor['sampleid'].apply(
+            lambda i: metadata.index[int(i) - 1])
+        lam_tensor['sampleid'] = sampleids
+        lam_tensor = lam_tensor.set_index(['sampleid', 'mc_sample', 'featureid'])
         xdata = lam_tensor.to_xarray()
 
         # rename taxa grrr
@@ -86,15 +89,16 @@ def basset(table : pd.DataFrame,
         f = lambda x: pattern.findall(x)[0]
         ftaxa = list(map(f, list(np.array(xdata.coords['featureid']))))
         t, r = zip(*ftaxa)
-        xdata['coords']['featureid'] = np.array(list(t))
+        xdata['featureid'] = np.array(list(t))
         # Convert alr coordinates to clr coordinates across entire tensor
+        n_samples = len(metadata)
         zdata = xr.DataArray(
-            np.zeros((1, 2000, 43)),
-            dims=['featureid', 'mc_sample', 'sample_num'],
+            np.zeros((1, monte_carlo_samples, n_samples)),
+            dims=['featureid', 'mc_sample', 'sampleid'],
             coords=dict(
-                featureid=np.array(r[0]),
+                featureid=np.array([r[0]]),
                 mc_sample=np.array(xdata.coords['mc_sample']),
-                sample_num=np.array(xdata.coords['sample_num'])
+                sampleid=np.array(xdata.coords['sampleid'])
             )
         )
         zdata = zdata.to_dataset(name='value')
