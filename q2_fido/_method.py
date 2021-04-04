@@ -31,7 +31,7 @@ def basset(table : pd.DataFrame,
            time : qiime2.NumericMetadataColumn,
            subjects : qiime2.CategoricalMetadataColumn,
            host : str,
-           monte_carlo_samples: int=2000) -> xr.DataArray:
+           monte_carlo_samples: int=2000) -> xr.Dataset:
 
     time = time.to_series()
     subjects = subjects.to_series()
@@ -42,7 +42,6 @@ def basset(table : pd.DataFrame,
     metadata = metadata.loc[ids]
     metadata = metadata['time'] - metadata['time'].min()
     table = table.loc[:, ((table>0).sum(axis=0) > 3)]  # filter out taxa in less than 3 samples
-    print(table.shape, metadata.shape)
     with tempfile.TemporaryDirectory() as temp_dir_name:
         # temp_dir_name = '.'
         biom_fp = os.path.join(temp_dir_name, 'input.tsv.biom')
@@ -58,7 +57,6 @@ def basset(table : pd.DataFrame,
         cmd = ['fido-timeseries.R', biom_fp, map_fp, 'time',
                monte_carlo_samples, summary_fp]
         cmd = list(map(str, cmd))
-
         try:
             run_commands([cmd])
         except subprocess.CalledProcessError as e:
@@ -83,6 +81,9 @@ def basset(table : pd.DataFrame,
         lam_tensor['sampleid'] = sampleids
         lam_tensor = lam_tensor.set_index(['sampleid', 'mc_sample', 'featureid'])
         xdata = lam_tensor.to_xarray()
+        if len(xdata.coords['mc_sample']) != monte_carlo_samples:
+            raise ValueError('Only MAP estimate is returned, '
+                             'the Hessian likely failed.')
 
         # rename taxa grrr
         pattern = re.compile(r'log\((\S+)/(\S+)\)')

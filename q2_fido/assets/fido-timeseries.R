@@ -11,7 +11,7 @@ args <- commandArgs(TRUE)
 biom.name <- args[[1]]
 map.name <- args[[2]]
 time.column <- args[[3]]
-mc.samples <- args[[4]]
+mc.samples <- as.integer(args[[4]])
 output <- args[[5]]
 
 table <-read.table(biom.name, check.names=FALSE, row.names=1)
@@ -33,6 +33,7 @@ diag(Xi) <- 1
 
 fit <- fido::basset(Y, X, upsilon, Theta, Gamma, Xi,
                     optim_method='lbfgs', jitter=0.001,
+                    max_iter=10000,
                     n_samples=mc.samples);
 lam <- as.data.frame(fit$Lambda)
 lam['featureid'] <- rownames(fit$Lambda)
