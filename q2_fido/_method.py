@@ -1,4 +1,5 @@
 import qiime2
+import biom
 import tempfile
 import xarray as xr
 import pandas as pd
@@ -6,6 +7,7 @@ import numpy as np
 import subprocess
 import os
 import re
+from dtw import accelerated_dtw
 
 
 def _alr2clr(x):
@@ -31,6 +33,7 @@ def basset(table : pd.DataFrame,
            time : qiime2.NumericMetadataColumn,
            subjects : qiime2.CategoricalMetadataColumn,
            host : str,
+           min_samples : int=2,
            monte_carlo_samples: int=2000) -> xr.Dataset:
 
     time = time.to_series()
@@ -41,7 +44,8 @@ def basset(table : pd.DataFrame,
     table = table.loc[ids]
     metadata = metadata.loc[ids]
     metadata = metadata['time'] - metadata['time'].min()
-    table = table.loc[:, ((table>0).sum(axis=0) > 3)]  # filter out taxa in less than 3 samples
+    # filter out taxa in less than 3 samples
+    table = table.loc[:, ((table>0).sum(axis=0) > min_samples)]
     with tempfile.TemporaryDirectory() as temp_dir_name:
         # temp_dir_name = '.'
         biom_fp = os.path.join(temp_dir_name, 'input.tsv.biom')
@@ -107,3 +111,10 @@ def basset(table : pd.DataFrame,
         xdata['name'] = 'data'
         posterior = xr.concat((zdata, xdata), dim='featureid')
         return posterior
+
+
+def dtw(table : biom.Table,
+        filepaths : qiime2.CategoricalMetadataColumn,
+        time : qiime2.NumericMetadataColumn,
+        subjects : qiime2.CategoricalMetadataColumn) -> pd.DataFrame:
+    pass

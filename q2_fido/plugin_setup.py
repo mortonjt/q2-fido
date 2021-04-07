@@ -4,11 +4,12 @@ import qiime2.sdk
 from qiime2.plugin import (Str, Properties, Int, Float,  Metadata, Bool,
                            MetadataColumn, Categorical, Numeric)
 from q2_types.feature_table import FeatureTable, Frequency
+from q2_types.distance_matrix import DistanceMatrix
 
 from q2_fido import __version__
 from q2_differential._type import FeatureTensor
 from q2_differential._format import FeatureTensorNetCDFFormat, FeatureTensorNetCDFDirFmt
-from q2_fido._method import basset
+from q2_fido._method import basset, dtw
 
 
 plugin = qiime2.plugin.Plugin(
@@ -29,6 +30,7 @@ plugin.methods.register_function(
         'subjects': MetadataColumn[Categorical],
         'host' : Str,
         'time': MetadataColumn[Numeric],
+        'min_samples': Int,
         'monte_carlo_samples': Int
     },
     outputs=[
@@ -47,6 +49,9 @@ plugin.methods.register_function(
         'time': (
             'Specifies time data.'
         ),
+        'min_samples' : (
+            'Minimum number of samples a microbe '
+            'has to be present in.'),
         'monte_carlo_samples': (
             'Number of monte carlo samples to draw from '
             'posterior distribution.'
@@ -54,6 +59,33 @@ plugin.methods.register_function(
 
     },
     name='Basset',
+    description=("Fits a Matrix t-distribution on a single trajectory."),
+    citations=[]
+)
+
+plugin.methods.register_function(
+    function=dtw,
+    inputs={'table': FeatureTable[Frequency]},
+    parameters={
+        'filepaths': MetadataColumn[Categorical],
+        'subjects': MetadataColumn[Categorical],
+        'time': MetadataColumn[Numeric],
+    },
+    outputs=[
+        ('distance_matrix', DistanceMatrix)
+    ],
+    input_descriptions={
+        "table": "Input table of counts.",
+    },
+    output_descriptions={
+        'distance_matrix': ('Pairwise distances between subjects.'),
+    },
+    parameter_descriptions={
+        'filepaths': ('Specifies location of posterior estimates.'),
+        'subjects': ('Specifies host subject ids.'),
+        'time': ('Specifies time data.'),
+    },
+    name='Dynamic Time Warping',
     description=("Fits a Matrix t-distribution on a single trajectory."),
     citations=[]
 )
