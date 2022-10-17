@@ -14,6 +14,6 @@ class FeatureTensorNetCDFFormat(model.BinaryFileFormat):
             return False
 
 
-FeatureTensorDirectoryFormat = model.SingleFileDirectoryFormat(
+FeatureTensorNetCDFDirFmt = model.SingleFileDirectoryFormat(
     'FeatureTensorDirectoryFormat', 'monte-carlo-samples.nc',
     FeatureTensorNetCDFFormat)

@@ -90,5 +90,6 @@ plugin.methods.register_function(
     citations=[]
 )
 
+plugin.register_semantic_types(FeatureTensor)
 plugin.register_semantic_type_to_format(
     FeatureTensor, FeatureTensorNetCDFDirFmt)

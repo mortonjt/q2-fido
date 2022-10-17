@@ -36,7 +36,6 @@ setup(name='q2-fido',
           'pandas',
           'xarray',
           'matplotlib',
-          'q2-differential'
       ],
       scripts=['q2_fido/assets/fido-timeseries.R'],
       entry_points={

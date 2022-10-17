@@ -7,7 +7,6 @@ import numpy as np
 import subprocess
 import os
 import re
-from dtw import accelerated_dtw
 
 
 def _alr2clr(x):
