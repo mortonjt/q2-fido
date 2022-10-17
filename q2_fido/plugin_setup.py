@@ -7,8 +7,8 @@ from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.distance_matrix import DistanceMatrix
 
 from q2_fido import __version__
-from q2_differential._type import FeatureTensor
-from q2_differential._format import FeatureTensorNetCDFFormat, FeatureTensorNetCDFDirFmt
+from q2_fido._type import FeatureTensor
+from q2_fido._format import FeatureTensorNetCDFFormat, FeatureTensorNetCDFDirFmt
 from q2_fido._method import basset, dtw
 
 
@@ -89,3 +89,6 @@ plugin.methods.register_function(
     description=("Fits a Matrix t-distribution on a single trajectory."),
     citations=[]
 )
+
+plugin.register_semantic_type_to_format(
+    FeatureTensor, FeatureTensorNetCDFDirFmt)
